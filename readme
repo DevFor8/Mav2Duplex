@@ -1,0 +1,16 @@
+Mav2Duplex
+Version 0.1
+(c) DevFor8.com - info@devfor8.com
+
+Hardware 
+- Arduino Pro Mini (or similar) with 5V / 16Mhz and ATMega 328
+- 4.7k
+- GND/RX connection to Mavlink capable board (Arducopter/MegaPirateNG) with OSD telemetry output allowed (same config as MinimOSD)
+- servo connector for connection between Arduino and Jeti receiver (insert into telemetry socket)
+- Duplex Ex capable transmitter (new Jeti transmitter or Jetibox Profi)
+
+Troubleshooting 
+- Arduino reseting
+* measure your voltage for RC. If it is bellow or on 5V, connect to VCC instead of RAW pin on Arduino (!!WARNING , Higher than 5V voltage can smoke your Arduino)
+
+
