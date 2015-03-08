@@ -1,5 +1,5 @@
 Mav2Duplex
-Version 0.1
+Version 1.0
 (c) DevFor8.com - info@devfor8.com
 
 Hardware 
@@ -7,10 +7,29 @@ Hardware
 - 4.7k
 - GND/RX connection to Mavlink capable board (Arducopter/MegaPirateNG) with OSD telemetry output allowed (same config as MinimOSD)
 - servo connector for connection between Arduino and Jeti receiver (insert into telemetry socket)
-- Duplex Ex capable transmitter (new Jeti transmitter or Jetibox Profi)
+- Duplex capable transmitter (old JetiBox, new Jeti transmitter or Jetibox Profi)
 
 Troubleshooting 
 - Arduino reseting
 * measure your voltage for RC. If it is bellow or on 5V, connect to VCC instead of RAW pin on Arduino (!!WARNING , Higher than 5V voltage can smoke your Arduino)
+
+- Unable to build binary
+* please downgrade your Arduino IDE to version 1.0.6
+
+- Speed update on data is slow
+* version 1.0 have major improvement in this area, it should be ok
+
+- Speed of EX telemetry is slow than text one
+* this is by design of protocol. You can speed it up with commenting lines with     
+* JB.addData(ITEMNAME_1,ITEMTYPE_1); and     JB.setValue(1,ITEMVAL_1); (with ID of data which you don't want)
+* speed and ammount of data in text protocol will keep same
+* We are not recommend to remove Home Dist parameter and have activated automatic record. This can help you with copter find in case of crash
+
+
+- Future development
+* sending copter GPS position over EX for record. This will slow down Ex data so it will be connected to easier setup of supported data
+
+
+
 
 
