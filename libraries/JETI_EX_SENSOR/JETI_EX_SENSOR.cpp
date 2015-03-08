@@ -66,28 +66,29 @@ JETI_Box_class::JETI_Box_class() {
 	valueEXToSend=0;
 }
 
-void JETI_Box_class::Init(const char* sensorName) {
-	nameEX[0]=(char*)sensorName;
-	unitEX[0]=" ";
+void JETI_Box_class::Init(const __FlashStringHelper* sensorName) {
+	nameEX[0]=sensorName;
+	unitEX[0]=F(" ");
 	nbValueEX++;
 }
 
-uint8_t JETI_Box_class::addData(const char* name, char* unit) {
+uint8_t JETI_Box_class::addData(const __FlashStringHelper* name, const __FlashStringHelper* unit) {
    // Prepare EX data
-   nameEX[nbValueEX]=(char*)name;
-	unitEX[nbValueEX]=(char*)unit;
+   nameEX[nbValueEX]=name;
+	unitEX[nbValueEX]=unit;
 	valueEX[nbValueEX]=0;
 	precisionEX[nbValueEX]=0;
 	nbValueEX++;
 	return(nbValueEX-1);
 }
 
+
 void JETI_Box_class::setValue(uint8_t ident, short* valuePtr) {
 	valueEX[ident]=(int*)valuePtr;
 	precisionEX[ident]=0;
 }
 
-void JETI_Box_class::setValue(uint8_t ident, float* valuePtr, uint8_t precision) {
+void JETI_Box_class::setValue(uint8_t ident, volatile float* valuePtr, uint8_t precision) {
 	valueEX[ident]=(int*)valuePtr;
 	precisionEX[ident]=precision;
 }
@@ -135,6 +136,66 @@ void JETI_Box_class::JetiBox(const char* line1, const char* line2) {
   } 
 }
 
+
+void JETI_Box_class::JetiBox(const __FlashStringHelper* line1, const __FlashStringHelper* line2)
+{
+  uint8_t i;
+  uint8_t length;
+  char ch;
+  bool empty;
+  prog_char *pline1 = ( prog_char * ) line1;
+  prog_char *pline2 = ( prog_char * ) line2;
+
+  // 34 Byte Data Package
+  empty = false;
+  for (i=0; i<(LCDMaxPos/2);i++) {
+	if (!empty)
+	{
+		ch = pgm_read_byte_near(pline1 + i);
+		if (ch == 0)
+			empty = true;
+	}
+    if (!empty) {
+      jetiLcd[i] = ch;
+    } else {
+      jetiLcd[i] = ' ';
+    }
+  }
+  
+  empty = false;
+  for (i=0; i<(LCDMaxPos/2);i++) {
+	if (!empty)
+	{
+		ch = pgm_read_byte_near(pline2 + i);
+		if (ch == 0)
+			empty = true;
+	}
+    if (!empty) {
+      jetiLcd[i+(LCDMaxPos/2)] = ch;
+    } else {
+      jetiLcd[i+(LCDMaxPos/2)] = ' ';
+    }
+  } 
+}
+
+
+void JETI_Box_class::JetiBox(const char* line)
+{
+  uint8_t i;
+  uint8_t length;
+
+  // 34 Byte Data Package
+  length = strlen(line);
+  for (i=0; i<(LCDMaxPos);i++) {
+    if (i<length) {
+      jetiLcd[i] = line[i];
+    } else {
+      jetiLcd[i] = ' ';
+    }
+  }
+}
+
+
 /* 8-bit CRC polynomial X^8 + X^2 + X + 1 */
 #define POLY 0x07
 uint8_t update_crc (uint8_t crc, uint8_t crc_seed)
@@ -169,7 +230,7 @@ uint16_t uint14 (long value)
 
 uint8_t sensorFrameName = 0;
 
-#define maxvals 5
+#define maxvals 6
 
 #define JETI_REPEAT_ALARM 6
 uint8_t alarmCmpt = JETI_REPEAT_ALARM;
@@ -184,16 +245,16 @@ bool JETI_Box_class::createFrame(uint8_t sendheader) {
 	int cmpt=0;
 	if (alarmEX) {
 	   frame[cmpt]=0x7E;
-		bit9[cmpt]=false;
+		////bit9[cmpt]=false;
 		cmpt++;
 		frame[cmpt]=0x92;
-		bit9[cmpt]=true;
+		//bit9[cmpt]=true;
 		cmpt++;
 		frame[cmpt]=0x23;
-		bit9[cmpt]=true;
+		//bit9[cmpt]=true;
 		cmpt++;
 		frame[cmpt]=alarmEX;
-		bit9[cmpt]=true;
+		//bit9[cmpt]=true;
 		cmpt++;
 		if (alarmCmpt) {
 			alarmCmpt--;
@@ -204,32 +265,34 @@ bool JETI_Box_class::createFrame(uint8_t sendheader) {
 	}
 	if (!alarmEX ) {
 	   frame[0]=0x7E;
-		bit9[0]=false;
+		//bit9[0]=false;
 	   frame[1]=0x9F;
-		bit9[1]=true;
+		//bit9[1]=true;
 	   frame[2]=0x00;
-		bit9[2]=true;
+		//bit9[2]=true;
 	   frame[3]=JETI_SENSOR_ID1;
-		bit9[3]=true;
+		//bit9[3]=true;
 	   frame[4]=JETI_SENSOR_ID2;
-		bit9[4]=true;
+		//bit9[4]=true;
 	   frame[5]=JETI_SENSOR_ID3;
-		bit9[5]=true;
+		//bit9[5]=true;
 	   frame[6]=JETI_SENSOR_ID4;
-		bit9[6]=true;
+		//bit9[6]=true;
 		//key=(uint8_t)random(0xFE)+1;
 		frame[7]=0;
-		bit9[7]=true;
+		//bit9[7]=true;
 		if (sendheader == 0) {
 			cmpt=8;
 			frame[2]=0x40;
-			while (valueEX[valueEXToSend]==0) {
+			
+			/*while (valueEX[valueEXToSend]==0) {
 				valueEXToSend++;
 				if (valueEXToSend>=nbValueEX) {
 					valueEXToSend=0;
 					break;
 				}
-			}
+			}*/
+			
 			//valueEXToSend=1+((valueEXToSend-1)/3)*3;
 			for (i_Loop=0; i_Loop<maxvals; i_Loop++) { //two values only
 				identSend=i_Loop+valueEXToSend;
@@ -243,7 +306,7 @@ bool JETI_Box_class::createFrame(uint8_t sendheader) {
 				// 5 for date/time 3 octets
 				// 9 for GPS 4 octets
 				frame[cmpt]=identSend<<4;
-				bit9[cmpt]=true;
+				//bit9[cmpt]=true;
 				switch (precisionEX[identSend]) {
 					case 0:
 						value=*((short*)valueEX[identSend]);
@@ -259,43 +322,43 @@ bool JETI_Box_class::createFrame(uint8_t sendheader) {
 						cmpt++;
 						value=(value&0x9FFF)|(precisionEX[identSend]<<13);
 						frame[cmpt]=(uint8_t)byte(value&0xFF);
-						bit9[cmpt]=true;
+						//bit9[cmpt]=true;
 						cmpt++;
 						frame[cmpt]=(uint8_t)byte((value>>8)&0xFF);
-						bit9[cmpt]=true;
+						//bit9[cmpt]=true;
 						cmpt++;
 				} else if (precisionEX[identSend]<6) {
 					frame[cmpt]|=0x05;
 					cmpt++;
 					valeur=((uint8_t*)valueEX[identSend]);
 					frame[cmpt]=valeur[2];
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					cmpt++;
 					frame[cmpt]=valeur[1];
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					cmpt++;
 					frame[cmpt]=valeur[0];
 					frame[cmpt]&=0x1F;
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					if (precisionEX[identSend]==4) {
 						frame[cmpt]|=0x20;
 					}
 					cmpt++;
-				} else if (precisionEX[identSend]==6) {
+				} else if (precisionEX[identSend]==9) {
 					frame[cmpt]|=0x09;
 					cmpt++;
 					valeur=((uint8_t*)valueEX[identSend]);
 					frame[cmpt]=valeur[3];
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					cmpt++;
 					frame[cmpt]=valeur[2];
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					cmpt++;
 					frame[cmpt]=valeur[1];
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					cmpt++;
 					frame[cmpt]=valeur[0];
-					bit9[cmpt]=true;
+					//bit9[cmpt]=true;
 					switch (valeur[0]) {
 						case 'N':
 							frame[cmpt]=0x00;
@@ -313,21 +376,28 @@ bool JETI_Box_class::createFrame(uint8_t sendheader) {
 			}
 
 		} else {
+			
+			char name[16];
+			char unit[16];
+			
+			strcpy_P((char*)&name,( prog_char* )nameEX[sensorFrameName]);
+			strcpy_P((char*)&unit,( prog_char* )unitEX[sensorFrameName]);
+		
 			frame[8]=sensorFrameName;
-			bit9[8]=true;
+			//bit9[8]=true;
 			frame[9]=0;
-			frame[9]|=(strlen(nameEX[sensorFrameName])<<3);
-			frame[9]|=(strlen(unitEX[sensorFrameName])&0x03);
-			bit9[9]=true;
+			frame[9]|=(strlen(name)<<3);
+			frame[9]|=(strlen(unit)&0x03);
+			//bit9[9]=true;
 			cmpt=10;
-			for (i_Loop=0;i_Loop<strlen(nameEX[sensorFrameName]);i_Loop++) {
-				frame[cmpt]=nameEX[sensorFrameName][i_Loop];
-				bit9[cmpt]=true;
+			for (i_Loop=0;i_Loop<strlen(name);i_Loop++) {
+				frame[cmpt]=name[i_Loop];
+				//bit9[cmpt]=true;
 				cmpt++;
 			}
-			for (i_Loop=0;i_Loop<strlen(unitEX[sensorFrameName]);i_Loop++) {
-				frame[cmpt]=unitEX[sensorFrameName][i_Loop];
-				bit9[cmpt]=true;
+			for (i_Loop=0;i_Loop<strlen(unit);i_Loop++) {
+				frame[cmpt]=unit[i_Loop];
+				//bit9[cmpt]=true;
 				cmpt++;
 			}
 			sensorFrameName++;
@@ -342,20 +412,21 @@ bool JETI_Box_class::createFrame(uint8_t sendheader) {
 			crc8=pgm_read_byte(&(crctable[(crc8 ^ frame[i_Loop])]));}
 		//crc8 = crc8fce(&frame[2],cmpt-2);
 		frame[cmpt]=crc8;
-		bit9[cmpt]=true;
+		//bit9[cmpt]=true;
 		cmpt++;
 	}
 	// Send the value to print on jetiBox 2*16 characters
 	frame[cmpt]=0xFE;
-	bit9[cmpt]=false;
+	//bit9[cmpt]=false;
+	middle_bit9 = cmpt;
 	cmpt++;
 	for (i_Loop=0;i_Loop<LCDMaxPos;i_Loop++) {
 	   frame[cmpt]=jetiLcd[i_Loop];
-	   bit9[cmpt]=true;
+	   //bit9[cmpt]=true;
 	   cmpt++;
 	}
 	frame[cmpt]=0xFF;
-	bit9[cmpt]=false;
+	//bit9[cmpt]=false;
 	cmpt++;
 	frameSize=cmpt;
 	return true;

@@ -32,26 +32,28 @@
 class JETI_Box_class {
 private:
 	int nbValueEX;
-	char* nameEX[16];
-	char* unitEX[16];
-	uint8_t precisionEX[16]; /* 0 int; 1,2,3 float; 4 date, 5 time, 6 GPS*/
+	const __FlashStringHelper * nameEX[16]; //zmenit na odkazy do PROGMEM
+	const __FlashStringHelper * unitEX[16]; //zmenit na odkazy do PROGMEM
+	uint8_t precisionEX[16]; /* 0 int; 1,2,3 float; 4 date, 5 time, 6 GPS*/ //zmenit na odkazy do PROGMEM
 	int* valueEX[16];
 	char alarmEX;
 	uint8_t valueEXToSend;
 public:
-	uint8_t frame[65];
-	bool bit9[65];
+	uint8_t frame[180];
+	int middle_bit9; //todle zmenime - false je pro prvni a posledni byte a pak pro byte uprostred mezi Ex datama a textama. Tj. staci nam znat offset tohodle a usetrime 64 bytes
 	uint8_t frameSize;
    JETI_Box_class();
-   void Init(const char* sensorName);
-	uint8_t addData(const char* name, char* unit);
+   void Init(const __FlashStringHelper* sensorName);
+	uint8_t addData(const __FlashStringHelper* name, const __FlashStringHelper* unit);
 	void setValue(uint8_t ident, short* valuePtr);
-	void setValue(uint8_t ident, float* valuePtr, uint8_t precision);
+	void setValue(uint8_t ident, volatile float* valuePtr, uint8_t precision);
 	void setValueTime(uint8_t ident, uint8_t[3]);
 	void setValueDate(uint8_t ident, uint8_t[3]);
 	void setValueGPS(uint8_t ident, uint8_t[4]); /* [0] NESW , [1] angle, [2][3] minute/1000*/
 	void unsetValue(uint8_t ident);
-   void JetiBox(const char* line1, const char* line2);
+    void JetiBox(const __FlashStringHelper* line1, const __FlashStringHelper* line2);
+    void JetiBox(const char* line1, const char* line2);
+    void JetiBox(const char* line);
 	bool createFrame(uint8_t sendheader);
 	
 	void alarm(char alarmLetter);

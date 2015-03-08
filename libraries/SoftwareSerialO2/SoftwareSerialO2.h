@@ -46,7 +46,7 @@ http://arduiniana.org.
 * Definitions
 ******************************************************************************/
 
-#define _SS_MAX_RX_BUFF 256 // RX buffer size
+#define _SS_MAX_RX_BUFF 32 // RX buffer size
 #ifndef GCC_VERSION
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
@@ -68,7 +68,6 @@ private:
   uint16_t _tx_delay_stopbit;
 
   uint16_t _buffer_overflow:1;
-  uint16_t _inverse_logic:1;
 
   // static data
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
@@ -90,7 +89,7 @@ public:
 	bool set9bit;
 	
   // public methods
-  SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic = false);
+  SoftwareSerial(uint8_t receivePin, uint8_t transmitPin);
   ~SoftwareSerial();
   void begin(long speed);
   bool listen();

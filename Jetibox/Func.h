@@ -51,7 +51,7 @@ void setHomeVars()
     
     if (osd_home_alt != -9) // we have it
       {
-        osd_home_altdif = osd_alt - osd_home_alt;
+        osd_alt = osd_baro_alt - osd_home_alt;
       }
     
     // shrinking factor for longitude going to poles direction
@@ -76,8 +76,8 @@ void setHomeVars()
     
     osd_home_heading = bearing;
         
-    osd_home_direction = round((float)(bearing/360.0f) * 16.0f) + 1;//array of arrows =)
-    if(osd_home_direction > 16) osd_home_direction = 0;
+//    osd_home_direction = round((float)(bearing/360.0f) * 16.0f) + 1;//array of arrows =)
+//    if(osd_home_direction > 16) osd_home_direction = 0;
 
   }
 

@@ -72,7 +72,7 @@ static const DELAY_TABLE PROGMEM table[] =
   { 28800,    34,        77,        77,       74,    74,    },
   { 19200,    54,        117,       117,      114,   114,   },
   { 14400,    74,        156,       156,      153,   153,   },
-  { 9600,     114,       236,       500,      230,   700,   },
+  { 9600,     114,       236,       500,      220,   680,   },
   { 4800,     233,       474,       474,      471,   471,   },
   { 2400,     471,       950,       950,      947,   947,   },
   { 1200,     947,       1902,      1902,     1899,  1899,  },
@@ -224,8 +224,6 @@ void SoftwareSerial::recv()
 
   // If RX line is high, then we don't see any start bit
   // so interrupt is probably not for us
-  if (_inverse_logic ? rx_pin_read() : !rx_pin_read())
-  {
     // Wait approximately 1/2 of a bit width to "center" the sample
     tunedDelay(_rx_delay_centering);
     DebugPulse(_DEBUG_PIN2, 1);
@@ -247,9 +245,6 @@ void SoftwareSerial::recv()
     tunedDelay(_rx_delay_stopbit);
     DebugPulse(_DEBUG_PIN2, 1);
 
-    if (_inverse_logic)
-      d = ~d;
-
     // if buffer full, set the overflow flag and return
     if ((_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF != _receive_buffer_head) 
     {
@@ -264,7 +259,6 @@ void SoftwareSerial::recv()
 #endif
       _buffer_overflow = true;
     }
-  }
 
 #if GCC_VERSION < 40302
 // Work-around for avr-gcc 4.3.0 OSX version bug
@@ -339,14 +333,13 @@ ISR(PCINT3_vect)
 //
 // Constructor
 //
-SoftwareSerial::SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic /* = false */) : 
+SoftwareSerial::SoftwareSerial(uint8_t receivePin, uint8_t transmitPin) : 
   _rx_delay_centering(0),
   _rx_delay_intrabit(0),
   _rx_delay_stopbit(0),
   _tx_delay(0),
   _tx_delay_stopbit(0),
-  _buffer_overflow(false),
-  _inverse_logic(inverse_logic)
+  _buffer_overflow(false)
 {
   setTX(transmitPin);
   setRX(receivePin);
@@ -371,9 +364,7 @@ void SoftwareSerial::setTX(uint8_t tx)
 
 void SoftwareSerial::setRX(uint8_t rx)
 {
-  pinMode(rx, INPUT);
-  if (!_inverse_logic)
-    digitalWrite(rx, HIGH);  // pullup for normal logic!
+  pinMode(rx, INPUT_PULLUP);
   _receivePin = rx;
   _receiveBitMask = digitalPinToBitMask(rx);
   uint8_t port = digitalPinToPort(rx);
@@ -436,7 +427,7 @@ int SoftwareSerial::read()
 
   // Empty buffer?
   if (_receive_buffer_head == _receive_buffer_tail)
-    return -1;
+    return -2;
 
   // Read from "head"
   uint8_t d = _receive_buffer[_receive_buffer_head]; // grab next byte
@@ -447,7 +438,7 @@ int SoftwareSerial::read()
 int SoftwareSerial::available()
 {
   if (!isListening())
-    return 0;
+    return -1;
 
   return (_receive_buffer_tail + _SS_MAX_RX_BUFF - _receive_buffer_head) % _SS_MAX_RX_BUFF;
 }
@@ -470,42 +461,9 @@ size_t SoftwareSerial::write(uint8_t b)
 
 
   // Write the start bit
-  tx_pin_write(_inverse_logic ? HIGH : LOW);
+  tx_pin_write(LOW);
   tunedDelay(_tx_delay + XMIT_START_ADJUSTMENT);
   
-
-  // Write each of the 8 bits
-  if (_inverse_logic)
-  {
-    for (byte mask = 0x01; mask; mask <<= 1)
-    {
-      if (b & mask) // choose bit
-        tx_pin_write(LOW); // send 1
-      else
-        tx_pin_write(HIGH); // send 0
-    
-      tunedDelay(_tx_delay);
-    }
-	
-      if (set9bit) // choose bit
-        tx_pin_write(LOW); // send 1
-      else
-        tx_pin_write(HIGH); // send 0
-    
-      tunedDelay(_tx_delay);
-	
-	
-    // parity
-    if (p & 0x01)
-      tx_pin_write(LOW); // send 1
-    else 
-      tx_pin_write(HIGH); // send 0
-    tunedDelay(_tx_delay);
-	
-    tx_pin_write(LOW); // restore pin to natural state
-  }
-  else
-  {
     for (byte mask = 0x01; mask; mask <<= 1)
     {
       if (b & mask) // choose bit
@@ -532,7 +490,6 @@ size_t SoftwareSerial::write(uint8_t b)
       tunedDelay(_tx_delay);
 
 	  tx_pin_write(HIGH); // restore pin to natural state
-  }
 
   SREG = oldSREG; // turn interrupts back on
   tunedDelay(_tx_delay_stopbit); //<< is for 2 stop bits

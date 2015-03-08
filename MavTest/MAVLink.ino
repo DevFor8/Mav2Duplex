@@ -56,7 +56,7 @@ void read_mavlink(int maxframes){
             switch(msg.msgid) {
             case MAVLINK_MSG_ID_HEARTBEAT:
                 {
-                  //Serial.println("beat");
+                  Serial.println("beat");
                     mavbeat = 1;
                     apm_mav_system    = msg.sysid;
                     apm_mav_component = msg.compid;
@@ -76,7 +76,7 @@ void read_mavlink(int maxframes){
                 break;
             case MAVLINK_MSG_ID_STATUSTEXT:
                 {
-                  //Serial.println("stext");
+                  Serial.println("stext");
                   char text[MAVLINK_MSG_ID_STATUSTEXT_LEN] ;
                   mavlink_msg_statustext_get_text(&msg,&text[0]);
                   strncpy((char*)LastMessage,text,LCDMaxPos);
@@ -84,7 +84,7 @@ void read_mavlink(int maxframes){
                 }
             case MAVLINK_MSG_ID_SYS_STATUS:
                 {
-                  //Serial.println("status");
+                  Serial.println("status");
                     osd_vbat_A = (mavlink_msg_sys_status_get_voltage_battery(&msg) / 1000.0f); //Battery voltage, in millivolts (1 = 1 millivolt)
                     osd_curr_A = (mavlink_msg_sys_status_get_current_battery(&msg) / 100.0f); //Battery current, in 10*milliamperes (1 = 10 milliampere)         10
                     osd_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg); //Remaining battery energy: (0%: 0, 100%: 100)
@@ -93,7 +93,7 @@ void read_mavlink(int maxframes){
 
             case MAVLINK_MSG_ID_GPS_RAW_INT:
                 {
-                  //Serial.println("gps:");
+                  Serial.println("gps:");
                     osd_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
                     osd_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
                     osd_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
@@ -104,7 +104,7 @@ void read_mavlink(int maxframes){
                 break; 
             case MAVLINK_MSG_ID_VFR_HUD:
                 {
-                  //Serial.println("hud:");
+                  Serial.println("hud:");
                     //osd_airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg);
                     //osd_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);
                     osd_heading = mavlink_msg_vfr_hud_get_heading(&msg); // 0..360 deg, 0=north
@@ -118,7 +118,7 @@ void read_mavlink(int maxframes){
                 break;
             case MAVLINK_MSG_ID_ATTITUDE:
                 {
-                  //Serial.println("atti");
+                  Serial.println("atti");
                     osd_pitch = ToDeg(mavlink_msg_attitude_get_pitch(&msg));
                     osd_roll = ToDeg(mavlink_msg_attitude_get_roll(&msg));
                     osd_yaw = ToDeg(mavlink_msg_attitude_get_yaw(&msg));
@@ -129,18 +129,16 @@ void read_mavlink(int maxframes){
             default:
                 {
                     
-                    //Serial.print("unk:");Serial.println(msg.msgid);
+                    Serial.print("unk:");Serial.println(msg.msgid);
                 }
                 break;
             }
-        }
-        delayMicroseconds(200);
+        delayMicroseconds(200); //wait just between frames, not eaach character
+      }
+        
         //next one
         if (current_frames>maxframes)
-          {
-            //Serial.println("MaxFrames reached");
-            break; //we need time for Jeti
-          }
+          break; //we need time for Jeti
     }
     // Update global packet drops counter
     packet_drops += status.packet_rx_drop_count;

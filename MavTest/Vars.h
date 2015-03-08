@@ -16,6 +16,8 @@
 // static float	    xtrack_error = 0; // Current crosstrack error on x-y plane in meters
 // static float        eff = 0; //Efficiency
 
+#define LCDMaxPos 32
+
  static short      base_mode=0;
  static short         motor_armed = 0;
 
