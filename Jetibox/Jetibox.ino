@@ -5,6 +5,7 @@
 	 2014, by DevFor8.com, info@devfor8.com
 	 
 	 part of code is based on ArduCAM OSD
+         Bugfixes and some enhancements added by MTBSTEVE
 */
 
 #include <SoftwareSerialO2.h>
@@ -45,12 +46,13 @@
 
 #define ITEMNAME_4 F("Batt A")
 #define ITEMTYPE_4 F("A")
-#define ITEMVAL_4 (short*)&osd_curr_A
+#define ITEMVAL_4  &osd_curr_A
 
 #define ITEMNAME_5 F("Batt C")
 #define ITEMTYPE_5 F("mAh")
-#define ITEMVAL_5 (short*)&osd_capacity_mA
+#define ITEMVAL_5  &osd_capacity_mA
 
+/* the following parameters are not used by me
 #define ITEMNAME_6 F("Yaw")
 #define ITEMTYPE_6 F("Deg")
 #define ITEMVAL_6 (short*)&osd_yaw
@@ -64,6 +66,19 @@
 #define ITEMTYPE_8 F("Deg")
 #define ITEMVAL_8 (short*)&osd_roll
 //#define ITEMVAL_8 (short*)&debug2
+*/
+// Climb rate and GPS pos added
+#define ITEMNAME_6 "Climb"
+#define ITEMTYPE_6 "m/s"
+#define ITEMVAL_6  &osd_climb
+
+#define ITEMNAME_7 "Lat"
+#define ITEMTYPE_7 ""
+#define ITEMVAL_7 (float*)&gps_lat
+
+#define ITEMNAME_8 "Lon"
+#define ITEMTYPE_8 ""
+#define ITEMVAL_8 (float*)&gps_lon
 
 #define ITEMNAME_9 F("Alt")
 #define ITEMTYPE_9 F("m")
@@ -78,17 +93,21 @@
 #define ITEMTYPE_11 F("m")
 #define ITEMVAL_11 (short*)&osd_home_distance
 
-#define ITEMNAME_12 F("GPS Lock")
-#define ITEMTYPE_12 F("")
-#define ITEMVAL_12 (short*)&osd_fix_type_jeti
+#define ITEMNAME_12 "HDOP"
+#define ITEMTYPE_12 ""
+#define ITEMVAL_12 &ap_gps_hdop
 
-#define ITEMNAME_13 F("GPS Sat")
-#define ITEMTYPE_13 F("")
-#define ITEMVAL_13 (short*)&osd_satellites_visible
+#define ITEMNAME_13 "GPS Lock"
+#define ITEMTYPE_13 ""
+#define ITEMVAL_13 (short*)&osd_fix_type_jeti
 
-#define ITEMNAME_14 F("Mode")
-#define ITEMTYPE_14 F("")
-#define ITEMVAL_14 (short*)&osd_mode
+#define ITEMNAME_14 "GPS Sat"
+#define ITEMTYPE_14 ""
+#define ITEMVAL_14 (short*)&osd_satellites_visible
+
+#define ITEMNAME_15 "Speed"
+#define ITEMTYPE_15 "m/s"
+#define ITEMVAL_15  &osd_groundspeed
 
 
 
@@ -418,18 +437,18 @@ void setup()
     JB.setValue(1,ITEMVAL_1);
     JB.setValue(2,ITEMVAL_2);
     JB.setValue(3,ITEMVAL_3,1);
-    JB.setValue(4,ITEMVAL_4);
+    JB.setValue(4,ITEMVAL_4,1);
     JB.setValue(5,ITEMVAL_5);
-    JB.setValue(6,ITEMVAL_6);
-    JB.setValue(7,ITEMVAL_7);
-    JB.setValue(8,ITEMVAL_8);
+    JB.setValue(6,ITEMVAL_6,1);
+    JB.setValue(7,ITEMVAL_7,6);
+    JB.setValue(8,ITEMVAL_8,6);
     JB.setValue(9,ITEMVAL_9,1);
     JB.setValue(10,ITEMVAL_10);
     JB.setValue(11,ITEMVAL_11);
-    JB.setValue(12,ITEMVAL_12);
+    JB.setValue(12,ITEMVAL_12,2);
     JB.setValue(13,ITEMVAL_13);
     JB.setValue(14,ITEMVAL_14);
-//    JB.setValue(15,ITEMVAL_15);
+    JB.setValue(15,ITEMVAL_15,1);
     
     do {
       JB.createFrame(1);
@@ -770,7 +789,8 @@ void loop()
 //      read_mavlink(5);
 
     setHomeVars();   // calculate and set Distance from home and Direction to home
-
+    calcGPS(); // recalc GPS vars for duplex fix by rosewhite
+    
 //    if (Serial.available() > 0) //at least beat should fill
 //      read_mavlink(5);
 
