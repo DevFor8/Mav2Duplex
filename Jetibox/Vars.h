@@ -89,7 +89,8 @@ static float        osd_windspeed = 0;
 static float        osd_windspeedz = 0;
 static float        osd_winddirection = 0;
 static int8_t       osd_wind_arrow_rotate_int;
-
+static char         LastMessage[LCDMaxPos];
+static float        osd_baro_alt = 0;                    // altitude
 static uint8_t      osd_alt_cnt = 0;              // counter for stable osd_alt
 static float        osd_alt_prev = 0;             // previous altitude
 
