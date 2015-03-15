@@ -68,16 +68,16 @@
 //#define ITEMVAL_8 (short*)&debug2
 */
 // Climb rate and GPS pos added
-#define ITEMNAME_6 "Climb"
-#define ITEMTYPE_6 "m/s"
+#define ITEMNAME_6 F("Climb")
+#define ITEMTYPE_6 F("m/s")
 #define ITEMVAL_6  &osd_climb
 
-#define ITEMNAME_7 "Lat"
-#define ITEMTYPE_7 ""
+#define ITEMNAME_7 F("Lat")
+#define ITEMTYPE_7 F("")
 #define ITEMVAL_7 (float*)&gps_lat
 
-#define ITEMNAME_8 "Lon"
-#define ITEMTYPE_8 ""
+#define ITEMNAME_8 F("Lon")
+#define ITEMTYPE_8 F("")
 #define ITEMVAL_8 (float*)&gps_lon
 
 #define ITEMNAME_9 F("Alt")
@@ -93,22 +93,21 @@
 #define ITEMTYPE_11 F("m")
 #define ITEMVAL_11 (short*)&osd_home_distance
 
-#define ITEMNAME_12 "HDOP"
-#define ITEMTYPE_12 ""
+#define ITEMNAME_12 F("HDOP")
+#define ITEMTYPE_12 F("")
 #define ITEMVAL_12 &ap_gps_hdop
 
-#define ITEMNAME_13 "GPS Lock"
-#define ITEMTYPE_13 ""
+#define ITEMNAME_13 F("GPS Lock")
+#define ITEMTYPE_13 F("")
 #define ITEMVAL_13 (short*)&osd_fix_type_jeti
 
-#define ITEMNAME_14 "GPS Sat"
-#define ITEMTYPE_14 ""
+#define ITEMNAME_14 F("GPS Sat")
+#define ITEMTYPE_14 F("")
 #define ITEMVAL_14 (short*)&osd_satellites_visible
 
-#define ITEMNAME_15 "Speed"
-#define ITEMTYPE_15 "m/s"
+#define ITEMNAME_15 F("Speed")
+#define ITEMTYPE_15 F("m/s")
 #define ITEMVAL_15  &osd_groundspeed
-
 
 
 #define ABOUT_1 F("MavToDuplex 1.0")
