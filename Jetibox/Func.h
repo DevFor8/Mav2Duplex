@@ -1,7 +1,7 @@
 /*
 	 Mav2DupEx Version 0.1
 	 2014, by DevFor8.com, info@devfor8.com
-	 
+	 fixes by MTBSTEVE
 	 part of code is based on ArduCAM OSD
 */
 
@@ -17,15 +17,15 @@ void setHomeVars()
   if (lastmillis < millis())
   {
      lastmillis = millis()+1000; //next second
-    
-     osd_capacity_mA = osd_capacity_mA + (osd_curr_A / 3.6);
+    if (osd_curr_A >= 0)
+     {
+         osd_capacity_mA = osd_capacity_mA + (osd_curr_A / 0.36);
+     }
     
   }
   
-  if (osd_fix_type >1) //0-1 = no fix, confusing. 0 = nofix, 2=2D , 3=3D
+ //0 = no GPS, 1 = nofix, 2=2D , 3=3D
   { osd_fix_type_jeti = osd_fix_type;}
-  else
-  { osd_fix_type_jeti = 0;}
   
   
   if(osd_got_home == 0 && osd_fix_type > 1){
@@ -82,4 +82,44 @@ void setHomeVars()
   }
 
 }
+// fix by rosewhite
+void calcGPS() {
+  uint16_t gps_lat_gr, gps_lon_gr, gps_lat_ms, gps_lon_ms;
+  long lat_tmp, lon_tmp;
+  long osd_lat_org_tmp, osd_lon_org_tmp;
+  float osd_lat_tmp, osd_lon_tmp;
+  
+  if(osd_lat_org >= 0) {
+    gps_lat[0] = 78; // North
+    osd_lat_org_tmp = osd_lat_org;
+    osd_lat_tmp = osd_lat;
+  } 
+  else {
+    gps_lat[0] = 83; // South
+    osd_lat_org_tmp = -osd_lat_org;
+    osd_lat_tmp = -osd_lat;
+  }
+  gps_lat_gr = (uint16_t)osd_lat_tmp;
+  lat_tmp = osd_lat_org_tmp-(gps_lat_gr*10000000.0f);
+  gps_lat_ms = lat_tmp*6/1000;
+  gps_lat[1] = gps_lat_gr;
+  gps_lat[2] = (uint8_t)(gps_lat_ms>>8);
+  gps_lat[3] = (uint8_t)(gps_lat_ms&0xFF);
 
+  if(osd_lon_org >= 0) {
+    gps_lon[0] = 69; // East
+    osd_lon_org_tmp = osd_lon_org;
+    osd_lon_tmp = osd_lon;
+  } 
+  else {
+    gps_lon[0] = 100; //West
+    osd_lon_org_tmp = -osd_lon_org;
+    osd_lon_tmp = -osd_lon;
+  }
+  gps_lon_gr = (uint16_t)osd_lon_tmp;
+  lon_tmp = osd_lon_org_tmp-(gps_lon_gr*10000000.0f);
+  gps_lon_ms = lon_tmp*6/1000;
+  gps_lon[1] = gps_lon_gr;
+  gps_lon[2] = (uint8_t)(gps_lon_ms>>8);
+  gps_lon[3] = (uint8_t)(gps_lon_ms&0xFF);
+}
