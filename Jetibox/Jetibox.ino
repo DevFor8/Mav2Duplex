@@ -74,11 +74,11 @@
 
 #define ITEMNAME_7 F("Lat")
 #define ITEMTYPE_7 F("")
-#define ITEMVAL_7 (float*)&gps_lat
+#define ITEMVAL_7 (uint8_t*)&gps_lat
 
 #define ITEMNAME_8 F("Lon")
 #define ITEMTYPE_8 F("")
-#define ITEMVAL_8 (float*)&gps_lon
+#define ITEMVAL_8 (uint8_t*)&gps_lon
 
 #define ITEMNAME_9 F("Alt")
 #define ITEMTYPE_9 F("m")
@@ -439,8 +439,8 @@ void setup()
     JB.setValue(4,ITEMVAL_4,1);
     JB.setValue(5,ITEMVAL_5);
     JB.setValue(6,ITEMVAL_6,1);
-    JB.setValue(7,ITEMVAL_7,6);
-    JB.setValue(8,ITEMVAL_8,6);
+    JB.setValueGPS(7,ITEMVAL_7);
+    JB.setValueGPS(8,ITEMVAL_8);
     JB.setValue(9,ITEMVAL_9,1);
     JB.setValue(10,ITEMVAL_10);
     JB.setValue(11,ITEMVAL_11);
