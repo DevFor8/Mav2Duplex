@@ -429,7 +429,7 @@ void setup()
     JB.addData(ITEMNAME_12,ITEMTYPE_12);
     JB.addData(ITEMNAME_13,ITEMTYPE_13);
     JB.addData(ITEMNAME_14,ITEMTYPE_14);
-//    JB.addData(ITEMNAME_15,ITEMTYPE_15);
+    JB.addData(ITEMNAME_15,ITEMTYPE_15);
     
     //values are linked so we don't need setValue during every change but one time is enoug
     
@@ -788,7 +788,7 @@ void loop()
 //      read_mavlink(5);
 
     setHomeVars();   // calculate and set Distance from home and Direction to home
-    calcGPS(); // recalc GPS vars for duplex fix by rosewhite
+   
     
 //    if (Serial.available() > 0) //at least beat should fill
 //      read_mavlink(5);
@@ -843,5 +843,5 @@ void loop()
   
   
   //debug2 = wait;
-
+ calcGPS(); // recalc GPS vars for duplex fix by rosewhite
 }
