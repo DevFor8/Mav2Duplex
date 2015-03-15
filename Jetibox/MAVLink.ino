@@ -93,27 +93,30 @@ void read_mavlink(int maxframes){
 
             case MAVLINK_MSG_ID_GPS_RAW_INT:
                 {
-                  //Serial.println("gps:");
-                    osd_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
-                    osd_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
-                    osd_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
+                  // fix by rosewhite
+                   osd_lat_org = mavlink_msg_gps_raw_int_get_lat(&msg); // store the orignal data
+                   osd_lon_org = mavlink_msg_gps_raw_int_get_lon(&msg);
+                   osd_lat = osd_lat_org / 10000000.0f;
+                   osd_lon = osd_lon_org / 10000000.0f;
+                   osd_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
+                    // 0 = No GPS, 1 =No Fix, 2 = 2D Fix, 3 = 3D Fix 
                     osd_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
-                  //serial.println(osd_fix_type);
+                    ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(&msg)/100.f;
 
                 }
                 break; 
             case MAVLINK_MSG_ID_VFR_HUD:
                 {
-                  //Serial.println("hud:");
-                    //osd_airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg);
-                    //osd_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);
+                  //Serial.print("hud:");
+                    osd_airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg);
+                    osd_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);
                     osd_heading = mavlink_msg_vfr_hud_get_heading(&msg); // 0..360 deg, 0=north
                   //Serial.println(osd_heading);  
-                    //osd_throttle = mavlink_msg_vfr_hud_get_throttle(&msg);
+                    osd_throttle = mavlink_msg_vfr_hud_get_throttle(&msg);
                     //if(osd_throttle > 100 && osd_throttle < 150) osd_throttle = 100;//Temporary fix for ArduPlane 2.28
                     //if(osd_throttle < 0 || osd_throttle > 150) osd_throttle = 0;//Temporary fix for ArduPlane 2.28
-                    osd_baro_alt = mavlink_msg_vfr_hud_get_alt(&msg);
-                    //osd_climb = mavlink_msg_vfr_hud_get_climb(&msg);
+                    osd_alt = mavlink_msg_vfr_hud_get_alt(&msg);
+                    osd_climb = mavlink_msg_vfr_hud_get_climb(&msg);
                 }
                 break;
             case MAVLINK_MSG_ID_ATTITUDE:
