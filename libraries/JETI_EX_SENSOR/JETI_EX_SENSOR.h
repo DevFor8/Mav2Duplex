@@ -14,7 +14,7 @@
 #ifndef JETI_EX_SENSOR_h
 #define JETI_EX_SENSOR_h
 #include <inttypes.h>
-#include <arduino.h>
+#include <Arduino.h>
 
 #define JETI_SENSOR_ID1 0x11 
 #define JETI_SENSOR_ID2 0xA4
