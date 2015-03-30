@@ -1,6 +1,11 @@
 Mav2Duplex
-Version 1.0
+Version 1.1
 (c) DevFor8.com - info@devfor8.com
+(c) Contributors, please check history on GitHub for detailed list
+
+Fixes :
+- Arduino 1.6.2. compatible
+- GPS in EX format fixed (Thanks for cooperation!!)
 
 Hardware 
 - Arduino Pro Mini (or similar) with 5V / 16Mhz and ATMega 328
@@ -13,9 +18,6 @@ Troubleshooting
 - Arduino reseting
 * measure your voltage for RC. If it is bellow or on 5V, connect to VCC instead of RAW pin on Arduino (!!WARNING , Higher than 5V voltage can smoke your Arduino)
 
-- Unable to build binary
-* please downgrade your Arduino IDE to version 1.0.6
-
 - Speed update on data is slow
 * version 1.0 have major improvement in this area, it should be ok
 
@@ -27,7 +29,7 @@ Troubleshooting
 
 
 - Future development
-* sending copter GPS position over EX for record. This will slow down Ex data so it will be connected to easier setup of supported data
+* Define base selection of items for Ex protocol
 
 
 

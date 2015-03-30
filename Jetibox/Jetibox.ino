@@ -1,3 +1,7 @@
+#include <FastSerial.h>
+#include <AP_Math.h>
+
+
 #include <EEPROM.h>
 
 /*
@@ -9,7 +13,7 @@
 */
 
 #include <SoftwareSerialO2.h>
-#include <FastSerial.h>
+
 #include <GCS_MAVLink.h>
 #include <JETI_EX_SENSOR.h>
 #include <c++.h>

@@ -20,7 +20,7 @@
 uint8_t jetiLcd[LCDMaxPos];
 uint8_t buttons;
 uint8_t lastbuttons;
-
+typedef const char prog_char;
 
 const byte crctable[256] PROGMEM = {
 	0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15,
@@ -102,7 +102,7 @@ void JETI_Box_class::setValueTime(uint8_t ident, uint8_t time[3]) {
 }
 void JETI_Box_class::setValueGPS(uint8_t ident, uint8_t coordinate[4]) {
 	valueEX[ident]=(int*)coordinate;
-	precisionEX[ident]=6;
+	precisionEX[ident]=9;
 }
 void JETI_Box_class::unsetValue(uint8_t ident) {
 	valueEX[ident]=0;

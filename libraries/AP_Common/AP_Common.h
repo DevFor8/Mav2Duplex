@@ -34,7 +34,6 @@ typedef struct {
 } prog_char_t;
 
 #include <stdint.h>
-#include "include/menu.h"		/// simple menu subsystem
 #include "c++.h" // c++ additions
 //#include "AP_Vector.h"
 //#include "AP_Loop.h"
@@ -73,7 +72,7 @@ typedef struct {
 // in conjunction with a suitably modified Arduino IDE; never define for
 // production as it generates bad code.
 //
-#if PRINTF_FORMAT_WARNING_DEBUG
+/*#if PRINTF_FORMAT_WARNING_DEBUG
 # undef PSTR
 # define PSTR(_x)		_x		// help the compiler with printf_P
 # define float double			// silence spurious format warnings for %f
@@ -85,6 +84,7 @@ typedef struct {
 // has an equivalent effect but avoids the warnings, which otherwise
 // make finding real issues difficult.
 //
+
 #ifdef DESKTOP_BUILD
 # undef PROGMEM
 # define PROGMEM __attribute__(())
@@ -101,11 +101,13 @@ typedef struct {
 // a varient of PSTR() for progmem strings passed to %S in printf()
 // this gets the gcc __format__ checking right
 #define FPSTR(s) (wchar_t *)(s)
+*/
 
+typedef const char prog_char;
 
 static inline int strcasecmp_P(const char *str1, const prog_char_t *pstr)
 {
-    return strcasecmp_P(str1, (const prog_char *)pstr);
+    return strcasecmp_P(str1, (const prog_char *) pstr);
 }
 
 static inline int strcmp_P(const char *str1, const prog_char_t *pstr)
