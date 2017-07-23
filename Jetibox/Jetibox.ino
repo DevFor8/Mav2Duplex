@@ -501,14 +501,17 @@ void process_screens()
         else
         strcat_P((char*)&msg_line1,(prog_char*)F("DIS "));
 
-      if (osd_fix_type_jeti == 0)
-        strcat_P((char*)&msg_line1,(prog_char*)F("NO:"));
+  if (osd_fix_type_jeti == 0)
+        strcat_P((char*)&msg_line1,(prog_char*)F("NO:")); // no Sats
         else
-        if (osd_fix_type_jeti == 2)
-          strcat_P((char*)&msg_line1,(prog_char*)F("2D:"));
+        if (osd_fix_type_jeti == 1)
+          strcat_P((char*)&msg_line1,(prog_char*)F("NO:")); // <3 Sats, 1D but essentially NO Fix too
           else
           if (osd_fix_type_jeti == 2)
-            strcat_P((char*)&msg_line1,(prog_char*)F("3D:"));        
+            strcat_P((char*)&msg_line1,(prog_char*)F("2D:"));  // 3-4 Sats
+             else
+             if (osd_fix_type_jeti == 3)
+                 strcat_P((char*)&msg_line1,(prog_char*)F("3D:"));  // >4 Sats        
 
       temp[0] = 0;
       int i = osd_satellites_visible;
