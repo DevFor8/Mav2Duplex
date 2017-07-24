@@ -123,7 +123,7 @@ typedef enum {
 #if (defined linux) | (defined __linux) | (defined  __MACH__) | (defined _WIN32)
 # define MAVLINK_COMM_NUM_BUFFERS 16
 #else
-# define MAVLINK_COMM_NUM_BUFFERS 1
+# define MAVLINK_COMM_NUM_BUFFERS 4
 #endif
 #endif
 
@@ -137,8 +137,7 @@ typedef enum {
     MAVLINK_PARSE_STATE_GOT_COMPID,
     MAVLINK_PARSE_STATE_GOT_MSGID,
     MAVLINK_PARSE_STATE_GOT_PAYLOAD,
-    MAVLINK_PARSE_STATE_GOT_CRC1,
-    MAVLINK_PARSE_STATE_BAD_CRC1
+    MAVLINK_PARSE_STATE_GOT_CRC1
 } mavlink_parse_state_t; ///< The state machine for the comm parser
 
 typedef struct __mavlink_status {

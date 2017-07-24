@@ -1,5 +1,4 @@
 #!/bin/sh
-exit
 # script to re-generate mavlink C code for APM
 
 mavdir="$(dirname $0)"

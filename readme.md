@@ -5,7 +5,7 @@ Version 2.0
 
 ### Mav2Ex Changes 
 
-- Arduino 1.8.6 compatible
+- Arduino 1.8.2 compatible
 - Changed value ranges (see bellow)
 - Mega32u4 processor supported (Arduino Leonardo and Pro Mini)
 

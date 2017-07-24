@@ -6,32 +6,33 @@
 #ifndef GCS_MAVLink_h
 #define GCS_MAVLink_h
 
-/*#define HardwareSerial_h
-/*
-// AVR Includes
-#if HARDWARE_TYPE == 0
- #include <SingleSerial.h> // MUST be first
-#elif HARDWARE_TYPE == 1
- #include <FastSerial.h> 
-#endif
-*/
-#include "compat.h"
-
-
-#include "Arduino.h"
-
-//extern SingleSerial Serial;
 
 // we have separate helpers disabled to make it possible
 // to select MAVLink 1.0 in the arduino GUI build
 //#define MAVLINK_SEPARATE_HELPERS
 
-#define MAVLINK_COMM_NUM_CHANNELS 1
+#include <Arduino.h>
 
 #include "include/mavlink/v1.0/ardupilotmega/version.h"
 
+// this allows us to make mavlink_message_t much smaller
+#define MAVLINK_MAX_PAYLOAD_LEN MAVLINK_MAX_DIALECT_PAYLOAD_SIZE
+
 #define MAVLINK_COMM_NUM_BUFFERS 1
 #include "include/mavlink/v1.0/mavlink_types.h"
+#include <limits.h>
+
+enum ap_var_type {
+    AP_PARAM_NONE    = 0,
+    AP_PARAM_INT8,
+    AP_PARAM_INT16,
+    AP_PARAM_INT32,
+    AP_PARAM_FLOAT,
+    AP_PARAM_VECTOR3F,
+    AP_PARAM_VECTOR6F,
+    AP_PARAM_MATRIX3F,
+    AP_PARAM_GROUP
+};
 
 /// MAVLink stream used for HIL interaction
 extern Stream	*mavlink_comm_0_port;
@@ -49,7 +50,6 @@ extern mavlink_system_t mavlink_system;
 ///
 static inline void comm_send_ch(mavlink_channel_t chan, uint8_t ch)
 {
-#if MAVLINK_COMM_NUM_CHANNELS>1
     switch(chan) {
 	case MAVLINK_COMM_0:
 		mavlink_comm_0_port->write(ch);
@@ -60,10 +60,6 @@ static inline void comm_send_ch(mavlink_channel_t chan, uint8_t ch)
 	default:
 		break;
 	}
-#else
-	//mavlink_comm_0_port->write(ch);
-	Serial.write(ch);
-#endif
 }
 
 /// Read a byte from the nominated MAVLink channel
@@ -73,7 +69,6 @@ static inline void comm_send_ch(mavlink_channel_t chan, uint8_t ch)
 ///
 static inline uint8_t comm_receive_ch(mavlink_channel_t chan)
 {
-#if MAVLINK_COMM_NUM_CHANNELS>1
     uint8_t data = 0;
 
     switch(chan) {
@@ -87,10 +82,6 @@ static inline uint8_t comm_receive_ch(mavlink_channel_t chan)
 		break;
 	}
     return data;
-#else
-    //return mavlink_comm_0_port->read();
-    return Serial.read();
-#endif
 }
 
 /// Check for available data on the nominated MAVLink channel
@@ -99,7 +90,6 @@ static inline uint8_t comm_receive_ch(mavlink_channel_t chan)
 /// @returns		Number of bytes available
 static inline uint16_t comm_get_available(mavlink_channel_t chan)
 {
-#if MAVLINK_COMM_NUM_CHANNELS>1
     uint16_t bytes = 0;
     switch(chan) {
 	case MAVLINK_COMM_0:
@@ -112,10 +102,6 @@ static inline uint16_t comm_get_available(mavlink_channel_t chan)
 		break;
 	}
     return bytes;
-#else
-	//return mavlink_comm_0_port->available();
-	return Serial.available();
-#endif
 }
 
 
@@ -125,21 +111,17 @@ static inline uint16_t comm_get_available(mavlink_channel_t chan)
 /// @returns		Number of bytes available, -1 for error
 static inline int comm_get_txspace(mavlink_channel_t chan)
 {
-#if MAVLINK_COMM_NUM_CHANNELS>1
     switch(chan) {
 	case MAVLINK_COMM_0:
-		return mavlink_comm_0_port->txspace();
+		return(INT_MAX);
 		break;
 	case MAVLINK_COMM_1:
-		return mavlink_comm_1_port->txspace();
+		return(INT_MAX);
 		break;
 	default:
 		break;
 	}
     return -1;
-#else
-    return 1;
-#endif
 }
 
 #define MAVLINK_USE_CONVENIENCE_FUNCTIONS
