@@ -317,7 +317,14 @@ int JETI_Box_class::calculate_datalen(int valEXToSend, unsigned char* ValuesToSe
   return cmpt;
 }
 
-bool boxsent = false;
+/*
+ * 
+ * 0 6b (-31 ¸31) 
+ * 1 14b (-8191 ¸8191) 
+ * 4 22b (-2097151 ¸2097151) 
+ * 5 času a data 
+ * 8 30b (-536870911 ¸536870911) 
+ */
 
 bool JETI_Box_class::SendFrame() {
   //unsigned char key;

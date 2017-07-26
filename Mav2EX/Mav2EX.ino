@@ -302,7 +302,7 @@ void setup()
 
   motor_armed = 0;
 
-  JB.setValue6(JB.addData(F("Armed"), F("")), &motor_armed, 0);
+  JB.setValue6(JB.addData(F("Mode"), F("")), &osd_mode, 0);
   JB.setValue6(JB.addData(F("GPS Lock"), F("")), &osd_fix_type_jeti, 0);
   JB.setValue6(JB.addData(F("GPS Sat"), F("")), &osd_satellites_visible, 0);
 
@@ -316,11 +316,14 @@ void setup()
    JB.setValue14(JB.addData(F("Pitch"), F("Deg")), &osd_pitch, 0);
    JB.setValue14(JB.addData(F("Roll"), F("Deg")), &osd_roll, 0);
   
-  JB.setValue30(JB.addData(F("Alt"), F("m")), &osd_alt, 1);
-  JB.setValue30(JB.addData(F("Batt V"), F("V")), &osd_vbat_A, 1);
-  JB.setValue30(JB.addData(F("Batt A"), F("A")), &osd_curr_A, 1);
+  JB.setValue14(JB.addData(F("Alt"), F("m")), &osd_alt, 0);
+  JB.setValue14(JB.addData(F("Batt V"), F("V")), &osd_vbat_A, 1);
+  JB.setValue14(JB.addData(F("Batt A"), F("A")), &osd_curr_A, 1);
   JB.setValue30(JB.addData(F("Batt C"), F("mAh")), &osd_capacity_mA, 0);
-  JB.setValue30(JB.addData(F("Home Dist"), F("m")), &osd_home_distance, 0);
+
+  //long range flights only
+  //JB.setValue30(JB.addData(F("Home Dist"), F("m")), &osd_home_distance, 0);
+  JB.setValue14(JB.addData(F("Home Dist"), F("m")), &osd_home_distance, 0);
 
   JB.setValueGPS(JB.addData( F("Lat"), F("")), &osd_lat, false);
   JB.setValueGPS(JB.addData( F("Lon"), F("")), &osd_lon, true);
@@ -436,7 +439,7 @@ void process_screens()
         strcat_P((char*)&msg_line2, (const char*)mode_str);
         strcat_P((char*)&msg_line2, (const char*)F(" Alt:"));
         temp[0] = 0;
-        floatToString((char*)&temp, (float)osd_alt/10, 1);
+        floatToString((char*)&temp, (float)osd_alt, 0);
         strcat((char*)&msg_line2, (char*)&temp);
         strcat_P((char*)&msg_line2, (const char*)F("m"));
 	
@@ -490,7 +493,7 @@ void process_screens()
         strcat_P((char*)&msg_line1, (const char*)mode_str);
         strcat_P((char*)&msg_line1, (const char*)F(" Alt:"));
         temp[0] = 0;
-        floatToString((char*)&temp, (float)osd_alt/10, 1);
+        floatToString((char*)&temp, (float)osd_alt, 0);
         strcat((char*)&msg_line1, (char*)&temp);
         strcat_P((char*)&msg_line1, (const char*)F("m"));
 
@@ -542,7 +545,7 @@ void process_screens()
         itoa(osd_pitch, (char*)&temp, 10);
         strcat((char*)&msg_line2, (char*)&temp);
         strcat_P((char*)&msg_line2, (const char*)F(" Alt:"));
-        floatToString((char*)&temp, (float)osd_alt/10, 1,3);
+        floatToString((char*)&temp, (float)osd_alt, 0,3);
         strcat((char*)&msg_line2, (char*)&temp);
 
         JB.JetiBox((char*)&msg_line1, (char*)&msg_line2);
@@ -603,7 +606,7 @@ void process_screens()
   //process alarms
   ProcessAlarm(0, osd_vbat_A/10);
   ProcessAlarm(1, osd_capacity_mA);
-  ProcessAlarm(2, osd_alt/10);
+  ProcessAlarm(2, osd_alt);
   ProcessAlarm(3, osd_home_distance);
 
 

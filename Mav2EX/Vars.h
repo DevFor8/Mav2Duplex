@@ -14,11 +14,11 @@
 static short        base_mode=0;
 static volatile int8_t         motor_armed = 0;
 
-static volatile int32_t     osd_vbat_A = -1;               // Battery A voltage in milivolt
-static volatile int32_t     osd_curr_A = -1;                 // Battery A current
+static volatile int16_t     osd_vbat_A = -1;               // Battery A voltage in milivolt
+static volatile int16_t     osd_curr_A = -1;                 // Battery A current
 static volatile int16_t        osd_battery_remaining_A = 0;    // 0 to 100 <=> 0 to 1000
 static volatile int32_t     osd_capacity_mA = 0;
-static volatile int16_t      osd_mode = 0;                   // Navigation mode from RC AC2 = CH5, APM = CH8
+static volatile int8_t      osd_mode = 0;                   // Navigation mode from RC AC2 = CH5, APM = CH8
 static volatile int16_t        osd_climb = 0;
 
 // fix by rosewhite
@@ -39,7 +39,7 @@ static uint8_t      osd_got_home = 0;               // tels if got home position
 static float        osd_home_lat = 0;               // home latidude
 static float        osd_home_lon = 0;               // home longitude
 static float        osd_home_alt = 0; 
-static volatile int32_t      osd_home_distance = 0;          // distance from home
+static volatile int16_t      osd_home_distance = 0;          // distance from home
 static volatile int16_t      osd_home_altdif = 0;          // distance from home
 static volatile int16_t       osd_home_heading = 0;             // Arrow direction pointing to home (1-16 to CW loop)
 
@@ -48,7 +48,7 @@ static short       osd_roll = 0;                   // roll from DCM
 static short       osd_yaw = 0;                    // relative heading form DCM
 static float       osd_heading = 0;                // ground course heading from GPS
 
-static volatile int32_t         osd_alt = 0;                    // altitude
+static volatile int16_t         osd_alt = 0;                    // altitude
 static volatile int16_t         osd_baro_alt = 0;                    // altitude
 
 static uint16_t      osd_alt_cnt = 0;              // counter for stable osd_alt
