@@ -9,6 +9,13 @@
 #define MAVLINK_HELPER
 #endif
 
+
+
+//#define MAV_DEBUG 1
+
+
+
+
 /*
   internal function to give access to the channel status for each channel
  */
@@ -30,6 +37,7 @@ MAVLINK_HELPER mavlink_message_t* mavlink_get_channel_buffer(uint8_t chan)
 #ifndef m_mavlink_message
 #error ERROR: IF #define MAVLINK_EXTERNAL_RX_BUFFER IS SET, THE BUFFER HAS TO BE ALLOCATED OUTSIDE OF THIS FUNCTION (mavlink_message_t m_mavlink_buffer[MAVLINK_COMM_NUM_BUFFERS];)
 #endif
+//    extern mavlink_message_t m_mavlink_buffer[];
 #else
 	static mavlink_message_t m_mavlink_buffer[MAVLINK_COMM_NUM_BUFFERS];
 #endif
@@ -94,7 +102,7 @@ MAVLINK_HELPER uint16_t mavlink_finalize_message(mavlink_message_t* msg, uint8_t
 #endif
 
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
-MAVLINK_HELPER void _mavlink_send_uart(mavlink_channel_t chan, const char *buf, uint16_t len);
+MAVLINK_HELPER void _mavlink_send_uart(mavlink_channel_t chan, const char *buf, uint8_t len);
 
 /**
  * @brief Finalize a MAVLink message with channel assignment and send
@@ -175,7 +183,7 @@ MAVLINK_HELPER void mavlink_start_checksum(mavlink_message_t* msg)
 	crc_init(&msg->checksum);
 }
 
-MAVLINK_HELPER void mavlink_update_checksum(mavlink_message_t* msg, uint8_t c)
+MAVLINK_HELPER void NOINLINE mavlink_update_checksum(mavlink_message_t* msg, uint8_t c)
 {
 	crc_accumulate(c, &msg->checksum);
 }
@@ -204,18 +212,18 @@ MAVLINK_HELPER void mavlink_update_checksum(mavlink_message_t* msg, uint8_t c)
  * int chan = 0;
  *
  *
- * while(serial.bytesAvailable > 0)
- * {
- *   uint8_t byte = serial.getNextByte();
- *   if (mavlink_parse_char(chan, byte, &msg))
- *     {
+ * while(serial.available > 0) {
+ *   uint8_t byte = serial.read();
+ *   if (mavlink_parse_char(chan, byte, &msg)) {
  *     printf("Received message with ID %d, sequence: %d from component %d of system %d", msg.msgid, msg.seq, msg.compid, msg.sysid);
- *     }
+ *   }
  * }
  *
  *
  * @endcode
  */
+ 
+ 
 MAVLINK_HELPER uint8_t mavlink_parse_char(uint8_t chan, uint8_t c, mavlink_message_t* r_message, mavlink_status_t* r_mavlink_status)
 {
         /*
@@ -224,8 +232,8 @@ MAVLINK_HELPER uint8_t mavlink_parse_char(uint8_t chan, uint8_t c, mavlink_messa
 	*/
 #if MAVLINK_CRC_EXTRA
 #ifndef MAVLINK_MESSAGE_CRC
-	static const uint8_t mavlink_message_crcs[256] = MAVLINK_MESSAGE_CRCS;
-#define MAVLINK_MESSAGE_CRC(msgid) mavlink_message_crcs[msgid]
+	static const uint8_t PROGMEM mavlink_message_crcs[256] = MAVLINK_MESSAGE_CRCS;
+#define MAVLINK_MESSAGE_CRC(msgid) pgm_read_byte(&mavlink_message_crcs[msgid])
 #endif
 #endif
 
@@ -235,35 +243,43 @@ MAVLINK_HELPER uint8_t mavlink_parse_char(uint8_t chan, uint8_t c, mavlink_messa
 
 	status->msg_received = 0;
 
-	switch (status->parse_state)
-	{
+	switch (status->parse_state) {
 	case MAVLINK_PARSE_STATE_UNINIT:
+	    status->packet_rx_drop_count = 0;
 	case MAVLINK_PARSE_STATE_IDLE:
-		if (c == MAVLINK_STX)
-		{
-			status->parse_state = MAVLINK_PARSE_STATE_GOT_STX;
+		if (c == MAVLINK_STX) {
+do_ctx:			status->parse_state = MAVLINK_PARSE_STATE_GOT_STX;
 			rxmsg->len = 0;
-			rxmsg->magic = c;
+//			rxmsg->magic = c;
 			mavlink_start_checksum(rxmsg);
-		}
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR("\n\ngot STX!"));
+#endif
+		} else
+		    goto lost_sync;
+		
 		break;
 
 	case MAVLINK_PARSE_STATE_GOT_STX:
-			if (status->msg_received 
+		if (status->msg_received 
 /* Support shorter buffers than the
    default maximum packet size */
 #if (MAVLINK_MAX_PAYLOAD_LEN < 255)
 				|| c > MAVLINK_MAX_PAYLOAD_LEN
 #endif
-				)
-		{
+				){
 			status->buffer_overrun++;
 			status->parse_error++;
 			status->msg_received = 0;
-			status->parse_state = MAVLINK_PARSE_STATE_IDLE;
+			//status->parse_state = MAVLINK_PARSE_STATE_IDLE;
+			goto lost_sync;
 		}
 		else
 		{
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR(" got Length!"));
+#endif
+
 			// NOT counting STX, LENGTH, SEQ, SYSID, COMPID, MSGID, CRC1 and CRC2
 			rxmsg->len = c;
 			status->packet_idx = 0;
@@ -273,18 +289,27 @@ MAVLINK_HELPER uint8_t mavlink_parse_char(uint8_t chan, uint8_t c, mavlink_messa
 		break;
 
 	case MAVLINK_PARSE_STATE_GOT_LENGTH:
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR(" got Seq!"));
+#endif
 		rxmsg->seq = c;
 		mavlink_update_checksum(rxmsg, c);
 		status->parse_state = MAVLINK_PARSE_STATE_GOT_SEQ;
 		break;
 
 	case MAVLINK_PARSE_STATE_GOT_SEQ:
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR(" got Sysid!"));
+#endif
 		rxmsg->sysid = c;
 		mavlink_update_checksum(rxmsg, c);
 		status->parse_state = MAVLINK_PARSE_STATE_GOT_SYSID;
 		break;
 
 	case MAVLINK_PARSE_STATE_GOT_SYSID:
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR(" got Compid!"));
+#endif
 		rxmsg->compid = c;
 		mavlink_update_checksum(rxmsg, c);
 		status->parse_state = MAVLINK_PARSE_STATE_GOT_COMPID;
@@ -293,76 +318,88 @@ MAVLINK_HELPER uint8_t mavlink_parse_char(uint8_t chan, uint8_t c, mavlink_messa
 	case MAVLINK_PARSE_STATE_GOT_COMPID:
 		rxmsg->msgid = c;
 		mavlink_update_checksum(rxmsg, c);
-		if (rxmsg->len == 0)
-		{
+		if (rxmsg->len == 0) {
 			status->parse_state = MAVLINK_PARSE_STATE_GOT_PAYLOAD;
-		}
-		else
-		{
+		} else {
 			status->parse_state = MAVLINK_PARSE_STATE_GOT_MSGID;
 		}
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR(" got Msgid!"));
+#endif
 		break;
 
 	case MAVLINK_PARSE_STATE_GOT_MSGID:
 		_MAV_PAYLOAD_NON_CONST(rxmsg)[status->packet_idx++] = (char)c;
 		mavlink_update_checksum(rxmsg, c);
-		if (status->packet_idx == rxmsg->len)
-		{
+		if (status->packet_idx == rxmsg->len) {
 			status->parse_state = MAVLINK_PARSE_STATE_GOT_PAYLOAD;
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR(" got payload!"));
+#endif
 		}
 		break;
 
 	case MAVLINK_PARSE_STATE_GOT_PAYLOAD:
 #if MAVLINK_CRC_EXTRA
 		mavlink_update_checksum(rxmsg, MAVLINK_MESSAGE_CRC(rxmsg->msgid));
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR("\nCRC updated by %d msg_id=%d\n"), MAVLINK_MESSAGE_CRC(rxmsg->msgid), rxmsg->msgid);
+#endif
+
 #endif
 		if (c != (rxmsg->checksum & 0xFF)) {
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR("\nCRC1! want=%d got=%d\n"), rxmsg->checksum & 0xFF, c);
+#endif
 			// Check first checksum byte
-			status->parse_error++;
-			status->msg_received = 0;
-			status->parse_state = MAVLINK_PARSE_STATE_IDLE;
-			if (c == MAVLINK_STX)
-			{
-				status->parse_state = MAVLINK_PARSE_STATE_GOT_STX;
-				rxmsg->len = 0;
-				mavlink_start_checksum(rxmsg);
+			if (c == MAVLINK_STX) {
+				//status->parse_state = MAVLINK_PARSE_STATE_GOT_STX;
+				//rxmsg->len = 0;
+				//mavlink_start_checksum(rxmsg);
+				goto do_ctx;
+			} else {
+				status->parse_state = MAVLINK_PARSE_STATE_BAD_CRC1;
 			}
-		}
-		else
-		{
+		} else {
 			status->parse_state = MAVLINK_PARSE_STATE_GOT_CRC1;
 			_MAV_PAYLOAD_NON_CONST(rxmsg)[status->packet_idx] = (char)c;
 		}
 		break;
 
+	case MAVLINK_PARSE_STATE_BAD_CRC1:
 	case MAVLINK_PARSE_STATE_GOT_CRC1:
-		if (c != (rxmsg->checksum >> 8)) {
-			// Check second checksum byte
+		if (c != (rxmsg->checksum >> 8)|| status->parse_state == MAVLINK_PARSE_STATE_BAD_CRC1) { // Check second checksum byte if 1st OK
+#ifdef MAV_DEBUG
+mavlink_comm_0_port->printf_P(PSTR("\nCRC2! want=%d got=%d\n"), rxmsg->checksum >> 8, c);
+#endif
+
 			status->parse_error++;
 			status->msg_received = 0;
-			status->parse_state = MAVLINK_PARSE_STATE_IDLE;
-			if (c == MAVLINK_STX)
-			{
-				status->parse_state = MAVLINK_PARSE_STATE_GOT_STX;
-				rxmsg->len = 0;
-				mavlink_start_checksum(rxmsg);
+			
+			if (c == MAVLINK_STX) {
+				//status->parse_state = MAVLINK_PARSE_STATE_GOT_STX;
+				//rxmsg->len = 0;
+				//mavlink_start_checksum(rxmsg);
+				goto do_ctx;
+			} else {
+				//status->parse_state = MAVLINK_PARSE_STATE_IDLE;
+lost_sync:
+			    status->parse_state=MAVLINK_PARSE_STATE_IDLE;
 			}
-		}
-		else
-		{
+		} else {
 			// Successfully got message
 			status->msg_received = 1;
 			status->parse_state = MAVLINK_PARSE_STATE_IDLE;
 			_MAV_PAYLOAD_NON_CONST(rxmsg)[status->packet_idx+1] = (char)c;
-			memcpy(r_message, rxmsg, sizeof(mavlink_message_t));
+			if(r_message)
+			    memcpy(r_message, rxmsg, sizeof(mavlink_message_t));
 		}
 		break;
 	}
 
 	bufferIndex++;
 	// If a message has been sucessfully decoded, check index
-	if (status->msg_received == 1)
-	{
+	if (status->msg_received) {
 		//while(status->current_seq != rxmsg->seq)
 		//{
 		//	status->packet_rx_drop_count++;
@@ -378,7 +415,9 @@ MAVLINK_HELPER uint8_t mavlink_parse_char(uint8_t chan, uint8_t c, mavlink_messa
 	r_mavlink_status->current_rx_seq = status->current_rx_seq+1;
 	r_mavlink_status->packet_rx_success_count = status->packet_rx_success_count;
 	r_mavlink_status->packet_rx_drop_count = status->parse_error;
+	r_mavlink_status->buffer_overrun = status->buffer_overrun;
 	status->parse_error = 0;
+
 	return status->msg_received;
 }
 
@@ -506,7 +545,7 @@ void comm_send_ch(mavlink_channel_t chan, uint8_t ch)
 }
  */
 
-MAVLINK_HELPER void _mavlink_send_uart(mavlink_channel_t chan, const char *buf, uint16_t len)
+MAVLINK_HELPER void _mavlink_send_uart(mavlink_channel_t chan, const char *buf, uint8_t len)
 {
 #ifdef MAVLINK_SEND_UART_BYTES
 	/* this is the more efficient approach, if the platform
@@ -514,7 +553,7 @@ MAVLINK_HELPER void _mavlink_send_uart(mavlink_channel_t chan, const char *buf, 
 	MAVLINK_SEND_UART_BYTES(chan, (uint8_t *)buf, len);
 #else
 	/* fallback to one byte at a time */
-	uint16_t i;
+	uint8_t i;
 	for (i = 0; i < len; i++) {
 		comm_send_ch(chan, (uint8_t)buf[i]);
 	}
