@@ -18,8 +18,7 @@
 static bool mavlink_active;
 static uint8_t crlf_count = 0;
 
-static int packet_drops = 0;
-static int parse_error = 0;
+
 
 boolean getBit(byte Reg, byte whichBit) {
     boolean State;
@@ -97,12 +96,17 @@ void read_mavlink(int maxframes){
                     }
             }
 
-            
+                  #ifdef DEBUG1f
+                  Serial.print(msg->msgid);Serial.print(" ");
+                  #endif
+                              
             //handle msg
             switch(msg->msgid) {
             case MAVLINK_MSG_ID_HEARTBEAT:
                 {
-                  //Serial.println("beat");
+                  #ifdef DEBUG1
+                  Serial.println("beat");
+                  #endif
                     mavbeat = 1;
                     apm_mav_system    = msg->sysid;
                     apm_mav_component = msg->compid;
@@ -176,7 +180,9 @@ void read_mavlink(int maxframes){
                     osd_pitch = ToDeg(mavlink_msg_attitude_get_pitch(msg));
                     osd_roll = ToDeg(mavlink_msg_attitude_get_roll(msg));
                     osd_yaw = ToDeg(mavlink_msg_attitude_get_yaw(msg));
-                  //Serial.print(osd_pitch);  Serial.print("  / ");Serial.print(osd_roll);  Serial.print("  / ");Serial.println(osd_yaw); 
+            #ifdef DEBUG
+                    Serial.print(millis());  Serial.print(" : ");Serial.print(osd_pitch);  Serial.print("  / ");Serial.print(osd_roll);  Serial.print("  / ");Serial.println(osd_yaw); 
+            #endif
                 }
                 break;
 
@@ -196,7 +202,4 @@ void read_mavlink(int maxframes){
           }
     }
     // Update global packet drops counter
-    packet_drops += status.packet_rx_drop_count;
-    parse_error += status.parse_error;
-
 }

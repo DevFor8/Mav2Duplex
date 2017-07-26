@@ -1,3 +1,12 @@
+//#define DEBUG
+
+#ifndef DEBUG
+  //disable stock serial driver
+  #include "disableserial.h" 
+#endif
+
+#include <FastSerial.h>
+#include <Arduino.h>
 
 #include <EEPROM.h>
 
@@ -17,6 +26,7 @@
 #include "JETI_EX_SENSOR.h"
 
 #include <GCS_MAVLink.h>
+#define MAVLINK_MSG_ID_HEARTBEAT_MIN_LEN 10
 
 #include "Vars.h"
 #include "Func.h"
@@ -28,8 +38,6 @@
 #endif
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port, 57600 for sure, 115200 better
-
-
 
 #define ABOUT_1 F("MavToEX 2.0")
 #define ABOUT_2 F("Nav with < >")
@@ -224,6 +232,36 @@ void ProcessAlarm(int id, float current_val)
   }
 }
 
+void JetiboxISR()
+{
+  if (mavlink_comm_0_port->available() >= MAVLINK_MSG_ID_HEARTBEAT_MIN_LEN ) //read one MAV frame between each JB value
+    read_mavlink(1);
+}
+
+void delayMAV(int _delay)
+{
+  unsigned long wait_till = millis() + _delay;
+  while ( millis() <  wait_till )
+  {
+    if (mavlink_comm_0_port->available() >= MAVLINK_MSG_ID_HEARTBEAT_MIN_LEN ) //at least beat should fill
+      {
+      read_mavlink(2);
+      }
+  }
+}
+
+#if defined(__AVR_ATmega328P__)
+  FastSerialPort(FSerial,0);
+#else //Mega32U4
+  FastSerialPort(FSerial,1);
+#endif
+
+BetterStream  *mavlink_comm_0_port;
+BetterStream  *mavlink_comm_1_port;
+mavlink_system_t mavlink_system; //modified
+
+
+    
 void setup()
 {
   pinMode(13, OUTPUT);
@@ -231,14 +269,18 @@ void setup()
 
   // setup mavlink port
 #if defined(__AVR_ATmega328P__)
-  Serial.begin(TELEMETRY_SPEED);
-  mavlink_comm_0_port = &Serial;
+  
 #else //Mega32U4
+  
   //debug
-  //Serial.begin(115200);
-  Serial1.begin(TELEMETRY_SPEED);
-  mavlink_comm_0_port = &Serial1;
+  #ifdef DEBUG
+    Serial.begin(115200);
+    Serial.println("Debug started!");
+  #endif  
 #endif
+
+  FSerial.begin(TELEMETRY_SPEED,256,8);
+  mavlink_comm_0_port = &FSerial;
 
 
   pinMode(JETI_RX, OUTPUT);
@@ -254,10 +296,11 @@ void setup()
 
   JB.JetiBox_P(ABOUT_1, ABOUT_2); //change to this for copy directly from F() and also to AddData in F() form only
   JB.Init(F("Mav2EX"), JETI_RX, 9700);
+  JB.FrameISR = JetiboxISR;
 
   //values are linked so we don't need setValue during every change but one time is enoug
 
-  motor_armed = 11;
+  motor_armed = 0;
 
   JB.setValue6(JB.addData(F("Armed"), F("")), &motor_armed, 0);
   JB.setValue6(JB.addData(F("GPS Lock"), F("")), &osd_fix_type_jeti, 0);
@@ -283,7 +326,7 @@ void setup()
   JB.setValueGPS(JB.addData( F("Lon"), F("")), &osd_lon, true);
 
   JB.SendFrame();
-  delay(GETCHAR_TIMEOUT_ms);
+  delayMAV(GETCHAR_TIMEOUT_ms);
 
   digitalWrite(13, LOW);   // turn the LED on (HIGH is the voltage level)
 
@@ -522,27 +565,32 @@ void process_screens()
 
 void loop()
 {
-  unsigned long time = millis();
+  /*if (mavlink_comm_0_port->available() > 0) //at least beat should fill
+    read_mavlink(5);
+    */
 
-  //Serial.print("Loop ");Serial.println(time);
-  time = millis();
+  if (current_screen != MAX_SCREEN)
+    current_config = 0; //zero 5th screen
 
-  int read = 0;
+  process_screens();
+
+  /*if (mavlink_comm_0_port->available() > 0) //at least beat should fill
+    read_mavlink(5);
+    */
+
+  setHomeVars();   // calculate and set Distance from home and Direction to home
+
+  // prepare frame
+  JB.txMode();
+  JB.SendFrame();
 
   JB.rxMode();
 
-  JetiSerial.listen();
-  JetiSerial.flush();
+  delayMAV (GETCHAR_TIMEOUT_ms);
 
-  while ( JetiSerial.available()  == 0 )
-  {
-    if (mavlink_comm_0_port->available() > 0) //at least beat should fill
-      read_mavlink(5);
+  int read = 0;
 
-    if (millis() - time >  5) //5ms to waiting
-      break; // return, if timout occures
-  }
-
+  //character should came in 20ms wait cycle and one only so we don't need to break wait and calculate resting time
   if (JetiSerial.available() > 0 )
   { read = JB.readbuttons();
     //240 = no buttons
@@ -606,47 +654,4 @@ void loop()
         }
     }
   }
-
-  if (mavlink_comm_0_port->available() > 0) //at least beat should fill
-    read_mavlink(5);
-
-  if (current_screen != MAX_SCREEN)
-    current_config = 0; //zero 5th screen
-
-  process_screens();
-
-  if (mavlink_comm_0_port->available() > 0) //at least beat should fill
-    read_mavlink(5);
-
-  setHomeVars();   // calculate and set Distance from home and Direction to home
-
-  // prepare frame
-  JB.txMode();
-  JB.SendFrame();
-
-  JB.rxMode();
-  time = millis();
-
-  if (mavlink_comm_0_port->available() > 0) //at least beat should fill
-    read_mavlink(10);
-
-  long wait = GETCHAR_TIMEOUT_ms ;
-  long milli = millis() - time;
-
-  if (milli > wait)
-    wait = 0;
-  else
-    wait = wait - milli;
-
-  while ( millis() - time <  20 )
-  {
-    if (mavlink_comm_0_port->available() > 0) //at least beat should fill
-      read_mavlink(10);
-    else
-      delay(1);
-  }
-
-  //if (wait > 0)
-    //delay(wait);
-
 }

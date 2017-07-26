@@ -509,8 +509,10 @@ size_t SoftwareSerial::write(unsigned char b)
     return 0;
   }
 
+#ifndef ALLOW_ISR
   unsigned char oldSREG = SREG;
   cli();  // turn off interrupts for a clean txmit
+#endif
 
     unsigned char p = 0;
 
@@ -559,8 +561,11 @@ if (is9bit)
       tunedDelay(_rx_delay_paritybit);
 }
 	  tx_pin_write(HIGH); // restore pin to natural state
-  
+
+#ifndef ALLOW_ISR  
   SREG = oldSREG; // turn interrupts back on
+#endif
+
   tunedDelay(_rx_delay_stopbit); //<< is for 2 stop bits
   
   

@@ -59,6 +59,8 @@ struct DateTime
 };
 #endif
 
+typedef void (*JBFrameISR) ();
+
 class JETI_Box_class {
   private:
     int nbValueEX;
@@ -77,6 +79,7 @@ class JETI_Box_class {
     long last_header;
 
     int calculate_datalen(int valEXToSend, unsigned char* ValuesToSend);
+    unsigned char WriteByte(unsigned char data, bool set9);
 
   public:
     JETI_Box_class();
@@ -105,6 +108,8 @@ class JETI_Box_class {
     unsigned char readbuttons();
     void rxMode();
     void txMode();
+
+    JBFrameISR FrameISR;
 };
 
 #endif

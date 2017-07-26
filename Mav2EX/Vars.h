@@ -8,6 +8,8 @@
    
    /*Panels variables*/
 //Will come from APM telem port
+#include <Arduino.h>
+
 
 static short        base_mode=0;
 static volatile int8_t         motor_armed = 0;

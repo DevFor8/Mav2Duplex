@@ -25,7 +25,7 @@
 SoftwareSerial JetiSerial(-1, -1);
 
 
-unsigned char WriteByte(unsigned char data, bool set9)
+unsigned char JETI_Box_class::WriteByte(unsigned char data, bool set9)
 {
   JetiSerial.set9bit = set9;
   JetiSerial.write(data);
@@ -34,12 +34,15 @@ unsigned char WriteByte(unsigned char data, bool set9)
   return data;
 }
 
+void EmptyISR()
+{}
 
 JETI_Box_class::JETI_Box_class() {
   // Class constructor
   alarmEX = 0;
   nbValueEX = 0;
   valueEXToSend = 0;
+  FrameISR = EmptyISR;
 }
 
 void JETI_Box_class::Init(const __FlashStringHelper* sensorName, unsigned char port, short uartspeed) {
@@ -263,7 +266,7 @@ int JETI_Box_class::calculate_datalen(int valEXToSend, unsigned char* ValuesToSe
 
   for (int i_Loop = 0; i_Loop < maxvals; i_Loop++) {
 
-    if (cmpt > 22)
+    if (cmpt > 26)
     {
       cmpt = last_cmp;
       (*ValuesToSend)--;
@@ -313,6 +316,8 @@ int JETI_Box_class::calculate_datalen(int valEXToSend, unsigned char* ValuesToSe
 
   return cmpt;
 }
+
+bool boxsent = false;
 
 bool JETI_Box_class::SendFrame() {
   //unsigned char key;
@@ -390,7 +395,7 @@ bool JETI_Box_class::SendFrame() {
 
       for (i_Loop = 0; i_Loop < ValuesToSend; i_Loop++) { //two values only
         identSend = i_Loop + valsnd;
-        valueEXToSend = identSend;
+        valueEXToSend = identSend+1;
 
         if (identSend >= nbValueEX) {
           break;
@@ -398,6 +403,10 @@ bool JETI_Box_class::SendFrame() {
         if (identSend == 0) {
           continue;
         }
+
+        //we can call it always as it is custom or empty
+        FrameISR();
+
 
         unsigned char d = identSend << 4;
 
@@ -524,14 +533,17 @@ bool JETI_Box_class::SendFrame() {
     WriteByte(crc, true);
   }
 
+  //we can call it always as it is custom or empty
+  FrameISR();
 
   // Send the value to print on jetiBox 2*16 characters
   WriteByte(0xFE, false);
   for (i_Loop = 0; i_Loop < LCDMaxPos; i_Loop++) {
     WriteByte(jetiLcd[i_Loop], true);
   }
-  WriteByte(0xFF, false);
+    WriteByte(0xFF, false);
 
+  
   return true;
 }
 
