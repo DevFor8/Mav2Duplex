@@ -374,8 +374,8 @@ void process_screens()
           if (osd_fix_type_jeti == 2)
             strcat_P((char*)&msg_line1,(const char*)F("2D:"));  // 3-4 Sats
              else
-             if (osd_fix_type_jeti == 3)
-                 strcat_P((char*)&msg_line1,(const char*)F("3D:"));  // >4 Sats   
+             if (osd_fix_type_jeti >= 3)
+                 strcat_P((char*)&msg_line1,(const char*)F("3D:"));  // >4 Sats, helmarw: some RTK gps may give fix type 4
 
         temp[0] = 0;
         int i = osd_satellites_visible;
@@ -392,11 +392,59 @@ void process_screens()
         strcat((char*)&msg_line1, (char*)&temp);
         strcat_P((char*)&msg_line1, (const char*)F("V"));
 
-        strncpy((char*)&msg_line2, (char*)LastMessage, LCDMaxPos / 2);
-
-
+       // strncpy((char*)&msg_line2, (char*)LastMessage, LCDMaxPos / 2);  helmarw: removed this since its on screen2 already, usually to long for one line anyway
+	
+      // helmarw: added this instead, to have a comprehensive default screen, thats the only one im using usually
+	 
+	   const __FlashStringHelper* mode_str=F("unkn");
+     if(apm_mav_type == 1){ //ArduPlane
+        if (osd_mode == 0)       mode_str = F("Manu"); //Manual
+        else if (osd_mode == 1)  mode_str = F("Circ"); //Circle
+        else if (osd_mode == 2)  mode_str = F("Stab"); //Stabilize
+        else if (osd_mode == 3)  mode_str = F("Trng"); //Training
+        else if (osd_mode == 4)  mode_str = F("Acro"); //Acro
+        else if (osd_mode == 5)  mode_str = F("Fbwa"); //Fly_By_Wire_A
+        else if (osd_mode == 6)  mode_str = F("Fbwb"); //Fly_By_Wire_B
+        else if (osd_mode == 7)  mode_str = F("Crui"); //Cruise
+        else if (osd_mode == 8)  mode_str = F("Atun"); //Auto Tune
+        else if (osd_mode == 10) mode_str = F("Auto"); //Auto
+        else if (osd_mode == 11) mode_str = F("RTL"); //Return to Launch
+        else if (osd_mode == 12) mode_str = F("Loit"); //Loiter
+        else if (osd_mode == 15) mode_str = F("Guid"); //Guided
+        else if (osd_mode == 16) mode_str = F("Init"); //Initializing
+    }
+    else    
+    { //rest
+        if (osd_mode == 0)       mode_str = F("Stab"); //Stabilize: hold level position
+        else if (osd_mode == 1)  mode_str = F("Acro"); //Acrobatic: rate control
+        else if (osd_mode == 2)  mode_str = F("Alth"); //Altitude Hold: auto control
+        else if (osd_mode == 3)  mode_str = F("Auto"); //Auto: auto control
+        else if (osd_mode == 4)  mode_str = F("Guid"); //Guided: auto control
+        else if (osd_mode == 5)  mode_str = F("Loit"); //Loiter: hold a single location
+        else if (osd_mode == 6)  mode_str = F("RTL "); //Return to Launch: auto control
+        else if (osd_mode == 7)  mode_str = F("Circ"); //Circle: auto control
+        else if (osd_mode == 8)  mode_str = F("Posi"); //Position: auto control
+        else if (osd_mode == 9)  mode_str = F("Land"); //Land:: auto control
+        else if (osd_mode == 10) mode_str = F("Oflo"); //OF_Loiter: hold a single location using optical flow sensor
+        else if (osd_mode == 11) mode_str = F("Drif"); //Drift mode: 
+        else if (osd_mode == 13) mode_str = F("Sprt"); //Sport: earth frame rate control
+        else if (osd_mode == 14) mode_str = F("Flip"); //Flip: flip the vehicle on the roll axis
+        else if (osd_mode == 15) mode_str = F("Atun"); //Auto Tune: autotune the vehicle's roll and pitch gains
+        else if (osd_mode == 16) mode_str = F("PosH"); //Hybrid: position hold with manual override
+    }
+    
+        strcat_P((char*)&msg_line2, (const char*)mode_str);
+        strcat_P((char*)&msg_line2, (const char*)F(" Alt:"));
+        temp[0] = 0;
+        floatToString((char*)&temp, (float)osd_alt/10, 1);
+        strcat((char*)&msg_line2, (char*)&temp);
+        strcat_P((char*)&msg_line2, (const char*)F("m"));
+	
+   // helmarw: end addition, please test it, for me it works very well, using it for years
+	    
         JB.JetiBox((char*)&msg_line1, (char*)&msg_line2);
         break;
+	    
       }
     case 3 : {
 
