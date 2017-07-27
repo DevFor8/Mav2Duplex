@@ -594,7 +594,7 @@ int SoftwareSerial::peek()
 void SoftwareSerial::txMode()
 {
   /* Disable Pin Change Interrupt capabilities for this pin */
-	active_object = 0;
+	stopListening();
   /* Switch Pin to Output */
   pinMode(_receivePin, OUTPUT);
   digitalWrite(_receivePin, HIGH);

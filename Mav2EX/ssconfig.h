@@ -1,1 +1,1 @@
-#define ALLOW_ISR
+//#define ALLOW_ISR

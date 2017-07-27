@@ -31,7 +31,7 @@
 #include "Vars.h"
 #include "Func.h"
 
-#define GETCHAR_TIMEOUT_ms 20  // 20ms timeout for Getchar Routine, just to make sure. Never ran into timeout
+#define GETCHAR_TIMEOUT_ms 100  // 100ms instead of 20ms to let code time to hit fastserial readings
 
 #ifndef JETI_RX
 #define JETI_RX 10
@@ -275,11 +275,12 @@ void setup()
   //debug
   #ifdef DEBUG
     Serial.begin(115200);
+    while (!Serial) {};
     Serial.println("Debug started!");
   #endif  
 #endif
 
-  FSerial.begin(TELEMETRY_SPEED,256,8);
+  FSerial.begin(TELEMETRY_SPEED,512,8);
   mavlink_comm_0_port = &FSerial;
 
 
