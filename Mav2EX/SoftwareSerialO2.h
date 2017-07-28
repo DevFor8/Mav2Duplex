@@ -46,7 +46,6 @@ http://arduiniana.org.
 #ifndef SoftwareSerial_h
 #define SoftwareSerial_h
 
-#include "ssconfig.h"
 #include <inttypes.h>
 #include <Stream.h>
 
