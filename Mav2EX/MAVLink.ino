@@ -156,7 +156,7 @@ void read_mavlink(int maxframes){
                    osd_fix_type = mavlink_msg_gps_raw_int_get_fix_type(msg);
                     // 0 = No GPS, 1 =No Fix, 2 = 2D Fix, 3 = 3D Fix 
                     osd_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(msg);
-                    ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(msg)/100.f;
+                    ap_gps_hdop = mavlink_msg_gps_raw_int_get_eph(msg); //in centimeters so multiplication not needed
 
                 }
                 break; 

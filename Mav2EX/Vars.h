@@ -40,6 +40,7 @@ static float        osd_home_lat = 0;               // home latidude
 static float        osd_home_lon = 0;               // home longitude
 static float        osd_home_alt = 0; 
 static volatile int16_t      osd_home_distance = 0;          // distance from home
+//static volatile int32_t      osd_home_distance = 0;          // long range distance from home
 static volatile int16_t      osd_home_altdif = 0;          // distance from home
 static volatile int16_t       osd_home_heading = 0;             // Arrow direction pointing to home (1-16 to CW loop)
 

@@ -19,17 +19,15 @@ Version 2.0
 
 #### Values and ranges
 
-**-31 to 31** - Armed, GPS Lock type, GPS Sat Count
+**-31 to 31** - Mode, GPS Lock type, GPS Sat Count
 
-**-8191 to 8191** - Bat %, Heading
+**-8191 to 8191** - Altitude, Bat %, Heading , Home Distance (in default mode, long range mode is commented)
 
-**-819.1 to 819.1** - Climb rate, Speed
+**-819.1 to 819.1** - Climb rate, Speed, Batt Voltage & Current, Pitch/Roll angle
 
 **-81.91 to 81.91** - HDOP
 
-**-536870911 to 536870911**  Battery Capacity, Home Distance
-
-**-53687091.1 to 53687091.1**  Altitude, Batt Voltage & Current
+**-536870911 to 536870911**  Battery Capacity, Home Distance (long range mode)
 
 
 

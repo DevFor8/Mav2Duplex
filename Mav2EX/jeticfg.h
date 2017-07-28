@@ -8,7 +8,7 @@
 #define JETI_HEADERTIME 1000
 
 //minimum time reported between two key hits on same key
-#define JETI_LASTKEYTIME 500
+#define JETI_LASTKEYTIME 200
 
 #if defined (__AVR_ATtiny85__)
 

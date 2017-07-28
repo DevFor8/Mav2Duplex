@@ -238,8 +238,9 @@ void JetiboxISR()
     read_mavlink(1);
 }
 
-void delayMAV(int _delay)
+int delayMAV(int _delay)
 {
+  int read = 0;
   unsigned long wait_till = millis() + _delay;
   while ( millis() <  wait_till )
   {
@@ -247,7 +248,17 @@ void delayMAV(int _delay)
       {
       read_mavlink(2);
       }
+
+    if (JetiSerial.available() > 0 )
+    {
+      read = JB.readbuttons();
+      if (read != 240 && read != 0)
+      { 
+        break;
+      }
+    }
   }
+  return read;
 }
 
 #if defined(__AVR_ATmega328P__)
@@ -260,6 +271,9 @@ BetterStream  *mavlink_comm_0_port;
 BetterStream  *mavlink_comm_1_port;
 mavlink_system_t mavlink_system; //modified
 
+int current_screen = 1; // 0 - about , 2 - message ,1 - prestart (arm/gps mode/gps count/ voltage/ one line message), 3- flight (mode, home angle, home alt) 4 - power state (v/cur/capacity/perc), 5 IMU status (angles, alt), 6 - Alarms
+int current_config = 0; // 0 - Alarms, 1 - capacity warn, 2 - dist warn
+int last_screen = 1;
 
     
 void setup()
@@ -289,6 +303,10 @@ void setup()
   digitalWrite(3, LOW);
 
   strcpy_P((char*)&LastMessage, (const char*)F("Mav2EX Init OK"));
+
+  current_screen = EEPROM.read(MAX_CONFIG); //after alarms
+  last_screen = current_screen;
+
 
   InitAlarms();
 
@@ -340,9 +358,6 @@ void setup()
 
 
 int header = 0;
-int current_screen = 1; // 0 - about , 2 - message ,1 - prestart (arm/gps mode/gps count/ voltage/ one line message), 3- flight (mode, home angle, home alt) 4 - power state (v/cur/capacity/perc), 5 IMU status (angles, alt), 6 - Alarms
-int current_config = 0; // 0 - Alarms, 1 - capacity warn, 2 - dist warn
-
 int alarm_id = -1;
 float alarm_current = 0;
 
@@ -351,6 +366,13 @@ void process_screens()
   char msg_line1[LCDMaxPos / 2];
   char msg_line2[LCDMaxPos / 2];
   char temp[LCDMaxPos / 2];
+
+  if (last_screen != current_screen)
+  //screen changed
+  {
+    EEPROM.write(MAX_CONFIG,current_screen); //after alarms
+    last_screen = current_screen;
+  }
 
   switch (current_screen)
   {
@@ -638,20 +660,18 @@ void loop()
 
   JB.rxMode();
 
-  delayMAV (GETCHAR_TIMEOUT_ms);
-
-  int read = 0;
+  int read = delayMAV (GETCHAR_TIMEOUT_ms);
 
   //character should came in 20ms wait cycle and one only so we don't need to break wait and calculate resting time
-  if (JetiSerial.available() > 0 )
-  { read = JB.readbuttons();
-    //240 = no buttons
+  if ( (read != 240 ) && (read != 0) )
+  { //240 = no buttons
     //224 - right
     //112 - left
     //208 up
     //176 down
     //144 up+down
     //96 left+right
+
     // process buttons
     switch (read)
     {
