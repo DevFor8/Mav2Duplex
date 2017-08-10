@@ -505,7 +505,7 @@ bool JETI_Box_class::SendFrame() {
         }
       }
 
-      if (valueEXToSend >= nbValueEX - 1) {
+      if (valueEXToSend >= nbValueEX) {
         valueEXToSend = 0;
       }
 
