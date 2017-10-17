@@ -363,8 +363,8 @@ float alarm_current = 0;
 
 void process_screens()
 {
-  char msg_line1[LCDMaxPos / 2];
-  char msg_line2[LCDMaxPos / 2];
+  char msg_line1[LCDMaxPos / 2 + 1]; //fix by Thero
+  char msg_line2[LCDMaxPos / 2 + 1]; //fix by Thero
   char temp[LCDMaxPos / 2];
 
   if (last_screen != current_screen)
